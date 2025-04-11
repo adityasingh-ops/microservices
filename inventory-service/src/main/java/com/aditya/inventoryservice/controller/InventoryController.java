@@ -6,14 +6,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/inventory")
 @RequiredArgsConstructor
 public class InventoryController {
     private final InventoryService inventoryService;
-    @GetMapping("/{skuCode}")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public boolean isInStock(@PathVariable("skuCode") String skuCode) {
+    public boolean isInStock(@RequestParam List<String> skuCode) {
         return inventoryService.isInStock(skuCode);
     }
 }
