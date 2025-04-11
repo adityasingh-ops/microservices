@@ -1,5 +1,6 @@
 package com.aditya.orderservice.services;
 
+import com.aditya.orderservice.dto.InventoryResponseDto;
 import com.aditya.orderservice.dto.OrderLineItemsDto;
 import com.aditya.orderservice.dto.OrderRequest;
 import com.aditya.orderservice.model.Order;
@@ -9,8 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,18 +30,18 @@ public class OrderService {
 
         order.setItems(orderLineList);
 
+        List<String> skuCode = order.getItems().stream().map(OrderLineItems::getSkuCode).collect(Collectors.toList());
+
         // checking the stock in the inverntory microvervice
-        Boolean result = webClient.get()
-                        .uri("http://localhost:5052/api/inventory/")
+        InventoryResponseDto[] inventoryResponseDtos = webClient.get()
+                        .uri("http://localhost:5052/api/inventory/",
+                                uriBuilder -> uriBuilder.queryParam("skuCode", skuCode).build()
+                                )
                                 .retrieve()
-                                        .bodyToMono(Boolean.class)
+                                        .bodyToMono(InventoryResponseDto[].class)
                                                 .block();
 
-        if (result) {
-            orderRepository.save(order);
-        }else {
-            throw new IllegalArgumentException("Product is not available");
-        }
+        boolean allProducts = Arrays.stream(inventoryResponseDtos).allMatch(InventoryResponseDto::isInStock);
 
     }
     private OrderLineItems mapToDto(OrderLineItemsDto orderLineItemsDto) {

@@ -1,4 +1,4 @@
-package com.aditya.inventoryservice.dto;
+package com.aditya.orderservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
